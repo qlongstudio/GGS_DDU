@@ -1,0 +1,279 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="cn" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="cn" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>2. 基础功能 &mdash; GGS_DDU 1.0.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="1. ROS+Gazebo" href="hitrobot.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> GGS_DDU
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">项目说明:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="readme.html">1. 基本说明</a></li>
+<li class="toctree-l1"><a class="reference internal" href="readme.html#kdl-python">2. KDL库的说明（python）</a></li>
+</ul>
+<p class="caption"><span class="caption-text">学习内容:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="hitrobot.html">1. ROS+Gazebo</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">2. 基础功能</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#id2">2.1. 创建一个状态机</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id3">2.1.1. 创建状态</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id4">2.1.2. 把状态加入到状态机</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">GGS_DDU</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>2. 基础功能</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/smach.md.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <p>Title: Readme
+Date: 2020-05-20 16:50
+Modified: 2020-05-20 20:50
+Category: learn
+Tags: smatch
+Authors: Qlong
+Summary:ros mach学习笔记</p>
+<div class="section" id="id1">
+<h1>2. 基础功能<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id2">
+<h2>2.1. 创建一个状态机<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id3">
+<h3>2.1.1. 创建状态<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<ol class="simple">
+<li>从State基类继承，并有两个方案。</li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="k">class</span> <span class="nc">Foo</span><span class="p">(</span><span class="n">smach</span><span class="o">.</span><span class="n">State</span><span class="p">):</span>
+     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outcomes</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;outcome1&#39;</span><span class="p">,</span> <span class="s1">&#39;outcome2&#39;</span><span class="p">]):</span>
+       <span class="c1"># Your state initialization goes here</span>
+
+     <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">userdata</span><span class="p">):</span>
+        <span class="c1"># Your state execution goes here</span>
+        <span class="k">if</span> <span class="n">xxxx</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;outcome1&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;outcome2&#39;</span>
+</pre></div>
+</div>
+<ol class="simple">
+<li>在init方法中，可以初始化状态类。
+确保切勿阻塞init方法！
+如果需要等待系统的其他部分启动，请从单独的线程执行此操作。
+<strong>用户的初始化代码写在这里</strong></li>
+<li>在execute方法中，可以执行所需的任何代码。
+只要您愿意，可以使用此方法进行阻止。
+从此方法返回后，当前状态即告完成。
+<strong>用户的执行代码写在这里。</strong></li>
+<li>状态结束时，它返回结果。
+每个状态都有许多与之相关的可能结果。
+结果是描述状态如何完成的用户定义的字符串。
+例如，一组可能的结果可能是（“成功”，“失败”，“真棒”）。
+将根据前一个状态的结果指定到下一个状态的转换。
+<strong>用户可以return字符串结果。</strong></li>
+</ol>
+</div>
+<div class="section" id="id4">
+<h3>2.1.2. 把状态加入到状态机<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<ol class="simple">
+<li>状态机是包含多个状态的容器。
+将状态添加到状态机容器时，可以指定状态之间的转换。</li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="n">sm</span> <span class="o">=</span> <span class="n">smach</span><span class="o">.</span><span class="n">StateMachine</span><span class="p">(</span><span class="n">outcomes</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;outcome4&#39;</span><span class="p">,</span><span class="s1">&#39;outcome5&#39;</span><span class="p">])</span>
+  <span class="k">with</span> <span class="n">sm</span><span class="p">:</span>
+     <span class="n">smach</span><span class="o">.</span><span class="n">StateMachine</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;FOO&#39;</span><span class="p">,</span> <span class="n">Foo</span><span class="p">(),</span>
+                            <span class="n">transitions</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;outcome1&#39;</span><span class="p">:</span><span class="s1">&#39;BAR&#39;</span><span class="p">,</span>
+                                         <span class="s1">&#39;outcome2&#39;</span><span class="p">:</span><span class="s1">&#39;outcome4&#39;</span><span class="p">})</span>
+     <span class="n">smach</span><span class="o">.</span><span class="n">StateMachine</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;BAR&#39;</span><span class="p">,</span> <span class="n">Bar</span><span class="p">(),</span>
+                            <span class="n">transitions</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;outcome2&#39;</span><span class="p">:</span><span class="s1">&#39;FOO&#39;</span><span class="p">})</span>
+</pre></div>
+</div>
+<ol>
+<li><p class="first">初始化状态机的时候，也会定义状态机的输出。
+用add方法把状态加入，同时用transitions参数设定结果与状态变化的对应关系。</p>
+<p><img alt="smatch_simple" src="_images/smatch_simple.png" /></p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="hitrobot.html" class="btn btn-neutral float-left" title="1. ROS+Gazebo" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Qlong
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

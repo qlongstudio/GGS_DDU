@@ -26,4 +26,5 @@ Qlong_GGS_DDU
    :caption: 学习内容:
 
    hitrobot
+   smach
 
