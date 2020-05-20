@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>2. ROS+smatch &mdash; GGS_DDU 1.0.0 documentation</title>
+  <title>2. ROS+smach &mdash; GGS_DDU 1.0.0 documentation</title>
   
 
   
@@ -87,10 +87,18 @@
 <p class="caption"><span class="caption-text">学习内容:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="hitrobot.html">1. ROS+Gazebo</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">2. ROS+smatch</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#id1">2.1. 创建一个状态机</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id2">2.1.1. 创建状态</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id3">2.1.2. 把状态加入到状态机</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">2. ROS+smach</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#smachsmach-viewr">2.1. <em><strong>smach和smach viewr基本说明</strong></em></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id1">2.2. <em><strong>创建一个状态机</strong></em></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id2">2.2.1. 创建状态</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id3">2.2.2. 把状态加入到状态机</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id4">2.2.3. 一个例子</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id5">2.2.4. 拓展说明</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id6">2.3. <em><strong>在状态之间传递数据</strong></em></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id7">2.3.1. 指定用户数据</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id8">2.3.2. 连接用户数据</a></li>
 </ul>
 </li>
 </ul>
@@ -140,7 +148,7 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>2. ROS+smatch</li>
+      <li>2. ROS+smach</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -163,15 +171,42 @@
 Date: 2020-05-20 16:50
 Modified: 2020-05-20 20:50
 Category: learn
-Tags: smatch
+Tags: smach
 Authors: Qlong
-Summary:ros smatch学习笔记</p>
-<div class="section" id="ros-smatch">
-<h1>2. ROS+smatch<a class="headerlink" href="#ros-smatch" title="Permalink to this headline">¶</a></h1>
+Summary:ros smach学习笔记</p>
+<div class="section" id="ros-smach">
+<h1>2. ROS+smach<a class="headerlink" href="#ros-smach" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="smachsmach-viewr">
+<h2>2.1. <em><strong>smach和smach viewr基本说明</strong></em><a class="headerlink" href="#smachsmach-viewr" title="Permalink to this headline">¶</a></h2>
+<ol class="simple">
+<li>完整的smach安装指令：</li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">install</span> <span class="n">ros</span><span class="o">-</span><span class="n">melodic</span><span class="o">-</span><span class="n">smach</span><span class="o">*</span>
+</pre></div>
+</div>
+<p>建议及时更新一些系统软件，不然可能装不上。</p>
+<ol class="simple">
+<li>启动监视器viewer的指令：</li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">rosrun</span> <span class="n">smach_viewer</span> <span class="n">smach_viewer</span><span class="o">.</span><span class="n">py</span>
+</pre></div>
+</div>
+<ol class="simple">
+<li>以下代码加到状态机sm运行之后，才会启动监视器功能，注意根据实际改此处sm的名字。</li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>    <span class="n">sis</span> <span class="o">=</span> <span class="n">smach_ros</span><span class="o">.</span><span class="n">IntrospectionServer</span><span class="p">(</span><span class="s1">&#39;server_name&#39;</span><span class="p">,</span> <span class="n">sm</span><span class="p">,</span> <span class="s1">&#39;/SM_ROOT&#39;</span><span class="p">)</span>
+    <span class="n">sis</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+    <span class="c1"># Execute SMACH plan</span>
+    <span class="n">outcome</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+    <span class="n">rospy</span><span class="o">.</span><span class="n">spin</span><span class="p">()</span> <span class="c1">#让程序在这里卡住循环，才能用viewer观察。</span>
+    <span class="n">sis</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
 <div class="section" id="id1">
-<h2>2.1. 创建一个状态机<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<h2>2.2. <em><strong>创建一个状态机</strong></em><a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="id2">
-<h3>2.1.1. 创建状态<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<h3>2.2.1. 创建状态<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
 <ol class="simple">
 <li>从State基类继承，并有两个方案。</li>
 </ol>
@@ -205,7 +240,7 @@ Summary:ros smatch学习笔记</p>
 </ol>
 </div>
 <div class="section" id="id3">
-<h3>2.1.2. 把状态加入到状态机<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<h3>2.2.2. 把状态加入到状态机<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
 <ol class="simple">
 <li>状态机是包含多个状态的容器。
 将状态添加到状态机容器时，可以指定状态之间的转换。</li>
@@ -219,12 +254,209 @@ Summary:ros smatch学习笔记</p>
                             <span class="n">transitions</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;outcome2&#39;</span><span class="p">:</span><span class="s1">&#39;FOO&#39;</span><span class="p">})</span>
 </pre></div>
 </div>
-<ol>
-<li><p class="first">初始化状态机的时候，也会定义状态机的输出。
-用add方法把状态加入，同时用transitions参数设定结果与状态变化的对应关系。</p>
-<p><img alt="smatch_simple" src="_images/smatch_simple.png" /></p>
-</li>
+<ol class="simple">
+<li>初始化状态机的时候，也会定义状态机的输出。
+用add方法把状态加入，同时用transitions参数设定结果与状态变化的对应关系。
+<img alt="smatch_simple" src="_images/smatch_simple.png" /></li>
 </ol>
+</div>
+<div class="section" id="id4">
+<h3>2.2.3. 一个例子<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/usr/bin/env python</span>
+
+<span class="kn">import</span> <span class="nn">rospy</span>
+<span class="kn">import</span> <span class="nn">smach</span>
+
+<span class="c1"># define state Foo</span>
+<span class="k">class</span> <span class="nc">Foo</span><span class="p">(</span><span class="n">smach</span><span class="o">.</span><span class="n">State</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">smach</span><span class="o">.</span><span class="n">State</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outcomes</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;outcome1&#39;</span><span class="p">,</span><span class="s1">&#39;outcome2&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">userdata</span><span class="p">):</span>
+        <span class="n">rospy</span><span class="o">.</span><span class="n">loginfo</span><span class="p">(</span><span class="s1">&#39;Executing state FOO&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">counter</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">counter</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">return</span> <span class="s1">&#39;outcome1&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;outcome2&#39;</span>
+
+
+<span class="c1"># define state Bar</span>
+<span class="k">class</span> <span class="nc">Bar</span><span class="p">(</span><span class="n">smach</span><span class="o">.</span><span class="n">State</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">smach</span><span class="o">.</span><span class="n">State</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outcomes</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;outcome2&#39;</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">userdata</span><span class="p">):</span>
+        <span class="n">rospy</span><span class="o">.</span><span class="n">loginfo</span><span class="p">(</span><span class="s1">&#39;Executing state BAR&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s1">&#39;outcome2&#39;</span>
+        
+<span class="c1"># main</span>
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="n">rospy</span><span class="o">.</span><span class="n">init_node</span><span class="p">(</span><span class="s1">&#39;smach_example_state_machine&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Create a SMACH state machine</span>
+    <span class="n">sm</span> <span class="o">=</span> <span class="n">smach</span><span class="o">.</span><span class="n">StateMachine</span><span class="p">(</span><span class="n">outcomes</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;outcome4&#39;</span><span class="p">,</span> <span class="s1">&#39;outcome5&#39;</span><span class="p">])</span>
+
+    <span class="c1"># Open the container</span>
+    <span class="k">with</span> <span class="n">sm</span><span class="p">:</span>
+        <span class="c1"># Add states to the container</span>
+        <span class="n">smach</span><span class="o">.</span><span class="n">StateMachine</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;FOO&#39;</span><span class="p">,</span> <span class="n">Foo</span><span class="p">(),</span> 
+                               <span class="n">transitions</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;outcome1&#39;</span><span class="p">:</span><span class="s1">&#39;BAR&#39;</span><span class="p">,</span> 
+                                            <span class="s1">&#39;outcome2&#39;</span><span class="p">:</span><span class="s1">&#39;outcome4&#39;</span><span class="p">})</span>
+        <span class="n">smach</span><span class="o">.</span><span class="n">StateMachine</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;BAR&#39;</span><span class="p">,</span> <span class="n">Bar</span><span class="p">(),</span> 
+                               <span class="n">transitions</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;outcome2&#39;</span><span class="p">:</span><span class="s1">&#39;FOO&#39;</span><span class="p">})</span>
+
+    <span class="c1"># Execute SMACH plan</span>
+    <span class="n">outcome</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+</div>
+<ol class="simple">
+<li>创建两个状态。</li>
+<li>main函数中初始化节点，然后初始化状态机，并获取状态机最终输出结果</li>
+</ol>
+</div>
+<div class="section" id="id5">
+<h3>2.2.4. 拓展说明<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<ol class="simple">
+<li>smatch自带一些默认状态类</li>
+<li>smatch还自带一些默认状态机容器
+这些将在之后的部分中说明</li>
+</ol>
+</div>
+</div>
+<div class="section" id="id6">
+<h2>2.3. <em><strong>在状态之间传递数据</strong></em><a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id7">
+<h3>2.3.1. 指定用户数据<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
+<ol class="simple">
+<li>状态之间需要数据传递，这种数据叫用户数据，构造状态类的时候，初始化需要设置用户数据。</li>
+<li>input_keys列表枚举所有的状态需要运行的输入。不能写入，保持不变。</li>
+<li>output_keys列表枚举所有的状态提供输出。可以写入。</li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="k">class</span> <span class="nc">Foo</span><span class="p">(</span><span class="n">smach</span><span class="o">.</span><span class="n">State</span><span class="p">):</span>
+     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outcomes</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;outcome1&#39;</span><span class="p">,</span> <span class="s1">&#39;outcome2&#39;</span><span class="p">],</span>
+                        <span class="n">input_keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;foo_input&#39;</span><span class="p">],</span>
+                        <span class="n">output_keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;foo_output&#39;</span><span class="p">])</span>
+
+     <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">userdata</span><span class="p">):</span>
+        <span class="c1"># Do something with userdata</span>
+        <span class="k">if</span> <span class="n">userdata</span><span class="o">.</span><span class="n">foo_input</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;outcome1&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">userdata</span><span class="o">.</span><span class="n">foo_output</span> <span class="o">=</span> <span class="mi">3</span>
+            <span class="k">return</span> <span class="s1">&#39;outcome2&#39;</span>
+</pre></div>
+</div>
+<p><img alt="smatch_simple" src="_images/user_data_single.png" /></p>
+</div>
+<div class="section" id="id8">
+<h3>2.3.2. 连接用户数据<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
+<ol class="simple">
+<li>在初始化状态机容器的时候，除了设置输入输出连接，还要通过状态机数据建立映射。</li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sm_top</span> <span class="o">=</span> <span class="n">smach</span><span class="o">.</span><span class="n">StateMachine</span><span class="p">(</span><span class="n">outcomes</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;outcome4&#39;</span><span class="p">,</span><span class="s1">&#39;outcome5&#39;</span><span class="p">],</span>
+                          <span class="n">input_keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;sm_input&#39;</span><span class="p">],</span>
+                          <span class="n">output_keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;sm_output&#39;</span><span class="p">])</span>
+  <span class="k">with</span> <span class="n">sm_top</span><span class="p">:</span>
+     <span class="n">smach</span><span class="o">.</span><span class="n">StateMachine</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;FOO&#39;</span><span class="p">,</span> <span class="n">Foo</span><span class="p">(),</span>
+                            <span class="n">transitions</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;outcome1&#39;</span><span class="p">:</span><span class="s1">&#39;BAR&#39;</span><span class="p">,</span>
+                                         <span class="s1">&#39;outcome2&#39;</span><span class="p">:</span><span class="s1">&#39;outcome4&#39;</span><span class="p">},</span>
+                            <span class="n">remapping</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;foo_input&#39;</span><span class="p">:</span><span class="s1">&#39;sm_input&#39;</span><span class="p">,</span>
+                                       <span class="s1">&#39;foo_output&#39;</span><span class="p">:</span><span class="s1">&#39;sm_data&#39;</span><span class="p">})</span>
+     <span class="n">smach</span><span class="o">.</span><span class="n">StateMachine</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;BAR&#39;</span><span class="p">,</span> <span class="n">Bar</span><span class="p">(),</span>
+                            <span class="n">transitions</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;outcome2&#39;</span><span class="p">:</span><span class="s1">&#39;FOO&#39;</span><span class="p">},</span>
+                            <span class="n">remapping</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;bar_input&#39;</span><span class="p">:</span><span class="s1">&#39;sm_data&#39;</span><span class="p">,</span>
+                                       <span class="s1">&#39;bar_output1&#39;</span><span class="p">:</span><span class="s1">&#39;sm_output&#39;</span><span class="p">})</span>
+</pre></div>
+</div>
+<ol class="simple">
+<li>注意，这里重映射的'x':'y'中，x为状态数据，y为状态机数据。（状态机数据可以是输入输出，也可以是中间数据）</li>
+<li>如果状态数据和状态机数据名字一样，可以不用重新映射，但是最好写上，比如'x':'x'</li>
+<li>两个状态的输入输出数据通过重新映射，通过同一个状态机中间数据实现了连接。</li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">FOO</span><span class="p">:</span> <span class="n">remapping</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;foo_output&#39;</span><span class="p">:</span><span class="s1">&#39;sm_user_data&#39;</span><span class="p">}</span>
+<span class="n">BAR</span><span class="p">:</span> <span class="n">remapping</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;bar_input&#39;</span><span class="p">:</span><span class="s1">&#39;sm_user_data&#39;</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>注意此处的sm_user_data也需要定义一下，比如：</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sm</span><span class="o">.</span><span class="n">userdata</span><span class="o">.</span><span class="n">sm_user_data</span> <span class="o">=</span> <span class="mi">0</span>
+</pre></div>
+</div>
+<ol class="simple">
+<li>当然状态数据也可以和状态机输入输出数据连接。</li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">BAR</span><span class="p">:</span> <span class="n">remapping</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;bar_output&#39;</span><span class="p">:</span><span class="s1">&#39;sm_output&#39;</span><span class="p">}</span>
+<span class="n">FOO</span><span class="p">:</span> <span class="n">remapping</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;foo_input&#39;</span><span class="p">:</span><span class="s1">&#39;sm_input&#39;</span><span class="p">}</span>
+</pre></div>
+</div>
+<p><img alt="smatch_simple" src="_images/user_data.png" /></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/usr/bin/env python</span>
+
+<span class="kn">import</span> <span class="nn">roslib</span><span class="p">;</span> <span class="n">roslib</span><span class="o">.</span><span class="n">load_manifest</span><span class="p">(</span><span class="s1">&#39;smach_tutorials&#39;</span><span class="p">)</span>
+<span class="kn">import</span> <span class="nn">rospy</span>
+<span class="kn">import</span> <span class="nn">smach</span>
+<span class="kn">import</span> <span class="nn">smach_ros</span>
+
+<span class="c1"># define state Foo</span>
+<span class="k">class</span> <span class="nc">Foo</span><span class="p">(</span><span class="n">smach</span><span class="o">.</span><span class="n">State</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">smach</span><span class="o">.</span><span class="n">State</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+                             <span class="n">outcomes</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;outcome1&#39;</span><span class="p">,</span><span class="s1">&#39;outcome2&#39;</span><span class="p">],</span>
+                             <span class="n">input_keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;foo_counter_in&#39;</span><span class="p">],</span>
+                             <span class="n">output_keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;foo_counter_out&#39;</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">userdata</span><span class="p">):</span>
+        <span class="n">rospy</span><span class="o">.</span><span class="n">loginfo</span><span class="p">(</span><span class="s1">&#39;Executing state FOO&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">userdata</span><span class="o">.</span><span class="n">foo_counter_in</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">userdata</span><span class="o">.</span><span class="n">foo_counter_out</span> <span class="o">=</span> <span class="n">userdata</span><span class="o">.</span><span class="n">foo_counter_in</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="k">return</span> <span class="s1">&#39;outcome1&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;outcome2&#39;</span>
+
+<span class="c1"># define state Bar</span>
+<span class="k">class</span> <span class="nc">Bar</span><span class="p">(</span><span class="n">smach</span><span class="o">.</span><span class="n">State</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">smach</span><span class="o">.</span><span class="n">State</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+                             <span class="n">outcomes</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;outcome1&#39;</span><span class="p">],</span>
+                             <span class="n">input_keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;bar_counter_in&#39;</span><span class="p">])</span>
+        
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">userdata</span><span class="p">):</span>
+        <span class="n">rospy</span><span class="o">.</span><span class="n">loginfo</span><span class="p">(</span><span class="s1">&#39;Executing state BAR&#39;</span><span class="p">)</span>
+        <span class="n">rospy</span><span class="o">.</span><span class="n">loginfo</span><span class="p">(</span><span class="s1">&#39;Counter = </span><span class="si">%f</span><span class="s1">&#39;</span><span class="o">%</span><span class="n">userdata</span><span class="o">.</span><span class="n">bar_counter_in</span><span class="p">)</span>        
+        <span class="k">return</span> <span class="s1">&#39;outcome1&#39;</span>
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="n">rospy</span><span class="o">.</span><span class="n">init_node</span><span class="p">(</span><span class="s1">&#39;smach_example_state_machine&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Create a SMACH state machine</span>
+    <span class="n">sm</span> <span class="o">=</span> <span class="n">smach</span><span class="o">.</span><span class="n">StateMachine</span><span class="p">(</span><span class="n">outcomes</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;outcome4&#39;</span><span class="p">])</span>
+    <span class="n">sm</span><span class="o">.</span><span class="n">userdata</span><span class="o">.</span><span class="n">sm_counter</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="c1"># Open the container</span>
+    <span class="k">with</span> <span class="n">sm</span><span class="p">:</span>
+        <span class="c1"># Add states to the container</span>
+        <span class="n">smach</span><span class="o">.</span><span class="n">StateMachine</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;FOO&#39;</span><span class="p">,</span> <span class="n">Foo</span><span class="p">(),</span> 
+                               <span class="n">transitions</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;outcome1&#39;</span><span class="p">:</span><span class="s1">&#39;BAR&#39;</span><span class="p">,</span> 
+                                            <span class="s1">&#39;outcome2&#39;</span><span class="p">:</span><span class="s1">&#39;outcome4&#39;</span><span class="p">},</span>
+                               <span class="n">remapping</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;foo_counter_in&#39;</span><span class="p">:</span><span class="s1">&#39;sm_counter&#39;</span><span class="p">,</span> 
+                                          <span class="s1">&#39;foo_counter_out&#39;</span><span class="p">:</span><span class="s1">&#39;sm_counter&#39;</span><span class="p">})</span>
+        <span class="n">smach</span><span class="o">.</span><span class="n">StateMachine</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;BAR&#39;</span><span class="p">,</span> <span class="n">Bar</span><span class="p">(),</span> 
+                               <span class="n">transitions</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;outcome1&#39;</span><span class="p">:</span><span class="s1">&#39;FOO&#39;</span><span class="p">},</span>
+                               <span class="n">remapping</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;bar_counter_in&#39;</span><span class="p">:</span><span class="s1">&#39;sm_counter&#39;</span><span class="p">})</span>
+
+
+    <span class="c1"># Execute SMACH plan</span>
+    <span class="n">outcome</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+</div>
 </div>
 </div>
 </div>
