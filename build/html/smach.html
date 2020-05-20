@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>2. 基础功能 &mdash; GGS_DDU 1.0.0 documentation</title>
+  <title>2. ROS+smatch &mdash; GGS_DDU 1.0.0 documentation</title>
   
 
   
@@ -87,10 +87,10 @@
 <p class="caption"><span class="caption-text">学习内容:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="hitrobot.html">1. ROS+Gazebo</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">2. 基础功能</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#id2">2.1. 创建一个状态机</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id3">2.1.1. 创建状态</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id4">2.1.2. 把状态加入到状态机</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">2. ROS+smatch</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#id1">2.1. 创建一个状态机</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id2">2.1.1. 创建状态</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id3">2.1.2. 把状态加入到状态机</a></li>
 </ul>
 </li>
 </ul>
@@ -140,7 +140,7 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>2. 基础功能</li>
+      <li>2. ROS+smatch</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -165,13 +165,13 @@ Modified: 2020-05-20 20:50
 Category: learn
 Tags: smatch
 Authors: Qlong
-Summary:ros mach学习笔记</p>
+Summary:ros smatch学习笔记</p>
+<div class="section" id="ros-smatch">
+<h1>2. ROS+smatch<a class="headerlink" href="#ros-smatch" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="id1">
-<h1>2. 基础功能<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h1>
+<h2>2.1. 创建一个状态机<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="id2">
-<h2>2.1. 创建一个状态机<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id3">
-<h3>2.1.1. 创建状态<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<h3>2.1.1. 创建状态<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
 <ol class="simple">
 <li>从State基类继承，并有两个方案。</li>
 </ol>
@@ -204,8 +204,8 @@ Summary:ros mach学习笔记</p>
 <strong>用户可以return字符串结果。</strong></li>
 </ol>
 </div>
-<div class="section" id="id4">
-<h3>2.1.2. 把状态加入到状态机<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id3">
+<h3>2.1.2. 把状态加入到状态机<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
 <ol class="simple">
 <li>状态机是包含多个状态的容器。
 将状态添加到状态机容器时，可以指定状态之间的转换。</li>

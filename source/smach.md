@@ -4,9 +4,9 @@ Modified: 2020-05-20 20:50
 Category: learn
 Tags: smatch
 Authors: Qlong
-Summary:ros mach学习笔记
+Summary:ros smatch学习笔记
 
-## 基础功能
+## ROS+smatch
 ### 创建一个状态机
 #### 创建状态
 1. 从State基类继承，并有两个方案。
