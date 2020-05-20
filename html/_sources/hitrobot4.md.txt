@@ -1,0 +1,16 @@
+Title: Readme
+Date: 2020-02-04 10:00
+Modified: 2020-02-06 23:54
+Category: learn
+Tags: gazebo
+Authors: Qlong
+Summary:hitdlrbot仿真使用说明，本文可以用pycharm打开，能看到排版格式(markdown)
+
+## 基本说明
+### 特别说明
+### 文件说明
+### 指令说明
+## KDL库的说明（python）
+### 安装kdl
+### 参考资料
+

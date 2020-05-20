@@ -1,0 +1,11 @@
+Title: hitdlrbot2
+Date: 2020-02-04 17:00
+Modified: 2020-02-04 10:00
+Category: learn
+Tags: gazebo
+Authors: Qlong
+Summary: ROS+Gazebo学习记录2
+## ROS+Gazebo学习记录2
+### 对比ABB yumi和我们的机器人
+
+重点问题还是抖动和底盘自动漂移。
