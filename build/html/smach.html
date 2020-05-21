@@ -101,6 +101,8 @@
 <li class="toctree-l3"><a class="reference internal" href="#id8">2.3.2. 连接用户数据</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#id9">2.4. <em><strong>创建分层状态机</strong></em></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#smach">2.5. <em><strong>从SMACH状态机内调用动作服务器</strong></em></a></li>
 </ul>
 </li>
 </ul>
@@ -198,7 +200,7 @@ Summary:ros smach学习笔记</p>
     <span class="n">sis</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
     <span class="c1"># Execute SMACH plan</span>
     <span class="n">outcome</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
-    <span class="n">rospy</span><span class="o">.</span><span class="n">spin</span><span class="p">()</span> <span class="c1">#让程序在这里卡住循环，才能用viewer观察。</span>
+    <span class="n">rospy</span><span class="o">.</span><span class="n">spin</span><span class="p">()</span> 
     <span class="n">sis</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -358,7 +360,7 @@ Summary:ros smach学习笔记</p>
 <ol class="simple">
 <li>在初始化状态机容器的时候，除了设置输入输出连接，还要通过状态机数据建立映射。</li>
 </ol>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sm_top</span> <span class="o">=</span> <span class="n">smach</span><span class="o">.</span><span class="n">StateMachine</span><span class="p">(</span><span class="n">outcomes</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;outcome4&#39;</span><span class="p">,</span><span class="s1">&#39;outcome5&#39;</span><span class="p">],</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="n">sm_top</span> <span class="o">=</span> <span class="n">smach</span><span class="o">.</span><span class="n">StateMachine</span><span class="p">(</span><span class="n">outcomes</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;outcome4&#39;</span><span class="p">,</span><span class="s1">&#39;outcome5&#39;</span><span class="p">],</span>
                           <span class="n">input_keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;sm_input&#39;</span><span class="p">],</span>
                           <span class="n">output_keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;sm_output&#39;</span><span class="p">])</span>
   <span class="k">with</span> <span class="n">sm_top</span><span class="p">:</span>
@@ -458,6 +460,314 @@ Summary:ros smach学习笔记</p>
 </pre></div>
 </div>
 </div>
+</div>
+<div class="section" id="id9">
+<h2>2.4. <em><strong>创建分层状态机</strong></em><a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h2>
+<p>1.首先我们有很多状态</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="c1"># State Foo</span>
+  <span class="k">class</span> <span class="nc">Foo</span><span class="p">(</span><span class="n">smach</span><span class="o">.</span><span class="n">State</span><span class="p">):</span>
+     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outcomes</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;outcome1&#39;</span><span class="p">,</span> <span class="s1">&#39;outcome2&#39;</span><span class="p">])</span>
+     
+     <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">userdata</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;outcome1&#39;</span>
+
+  <span class="c1"># State Bar</span>
+  <span class="k">class</span> <span class="nc">Bar</span><span class="p">(</span><span class="n">smach</span><span class="o">.</span><span class="n">State</span><span class="p">):</span>
+     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outcomes</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;outcome1&#39;</span><span class="p">])</span>
+     
+     <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">userdata</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;outcome4&#39;</span>
+
+  <span class="c1"># State Bas</span>
+  <span class="k">class</span> <span class="nc">Bas</span><span class="p">(</span><span class="n">smach</span><span class="o">.</span><span class="n">State</span><span class="p">):</span>
+     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outcomes</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;outcome3&#39;</span><span class="p">])</span>
+     
+     <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">userdata</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;outcome3&#39;</span>
+</pre></div>
+</div>
+<ol class="simple">
+<li>创建一个顶层状态机，添加状态，也可以添加另一个状态机作为底层状态机。
+<img alt="smatch_simple" src="_images/sm_expanded.png" /></li>
+<li>举例</li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/usr/bin/env python</span>
+
+<span class="kn">import</span> <span class="nn">roslib</span><span class="p">;</span> <span class="n">roslib</span><span class="o">.</span><span class="n">load_manifest</span><span class="p">(</span><span class="s1">&#39;smach_tutorials&#39;</span><span class="p">)</span>
+<span class="kn">import</span> <span class="nn">rospy</span>
+<span class="kn">import</span> <span class="nn">smach</span>
+<span class="kn">import</span> <span class="nn">smach_ros</span>
+
+<span class="c1"># define state Foo</span>
+<span class="k">class</span> <span class="nc">Foo</span><span class="p">(</span><span class="n">smach</span><span class="o">.</span><span class="n">State</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">smach</span><span class="o">.</span><span class="n">State</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outcomes</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;outcome1&#39;</span><span class="p">,</span><span class="s1">&#39;outcome2&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">userdata</span><span class="p">):</span>
+        <span class="n">rospy</span><span class="o">.</span><span class="n">loginfo</span><span class="p">(</span><span class="s1">&#39;Executing state FOO&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">counter</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">counter</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">return</span> <span class="s1">&#39;outcome1&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;outcome2&#39;</span>
+
+<span class="c1"># define state Bar</span>
+<span class="k">class</span> <span class="nc">Bar</span><span class="p">(</span><span class="n">smach</span><span class="o">.</span><span class="n">State</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">smach</span><span class="o">.</span><span class="n">State</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outcomes</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;outcome1&#39;</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">userdata</span><span class="p">):</span>
+        <span class="n">rospy</span><span class="o">.</span><span class="n">loginfo</span><span class="p">(</span><span class="s1">&#39;Executing state BAR&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s1">&#39;outcome1&#39;</span>
+       
+<span class="c1"># define state Bas</span>
+<span class="k">class</span> <span class="nc">Bas</span><span class="p">(</span><span class="n">smach</span><span class="o">.</span><span class="n">State</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">smach</span><span class="o">.</span><span class="n">State</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outcomes</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;outcome3&#39;</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">userdata</span><span class="p">):</span>
+        <span class="n">rospy</span><span class="o">.</span><span class="n">loginfo</span><span class="p">(</span><span class="s1">&#39;Executing state BAS&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s1">&#39;outcome3&#39;</span>
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="n">rospy</span><span class="o">.</span><span class="n">init_node</span><span class="p">(</span><span class="s1">&#39;smach_example_state_machine&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Create the top level SMACH state machine</span>
+    <span class="n">sm_top</span> <span class="o">=</span> <span class="n">smach</span><span class="o">.</span><span class="n">StateMachine</span><span class="p">(</span><span class="n">outcomes</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;outcome5&#39;</span><span class="p">])</span>
+    
+    <span class="c1"># Open the container</span>
+    <span class="k">with</span> <span class="n">sm_top</span><span class="p">:</span>
+
+        <span class="n">smach</span><span class="o">.</span><span class="n">StateMachine</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;BAS&#39;</span><span class="p">,</span> <span class="n">Bas</span><span class="p">(),</span>
+                               <span class="n">transitions</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;outcome3&#39;</span><span class="p">:</span><span class="s1">&#39;SUB&#39;</span><span class="p">})</span>
+
+        <span class="c1"># Create the sub SMACH state machine</span>
+        <span class="n">sm_sub</span> <span class="o">=</span> <span class="n">smach</span><span class="o">.</span><span class="n">StateMachine</span><span class="p">(</span><span class="n">outcomes</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;outcome4&#39;</span><span class="p">])</span>
+
+        <span class="c1"># Open the container</span>
+        <span class="k">with</span> <span class="n">sm_sub</span><span class="p">:</span>
+
+            <span class="c1"># Add states to the container</span>
+            <span class="n">smach</span><span class="o">.</span><span class="n">StateMachine</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;FOO&#39;</span><span class="p">,</span> <span class="n">Foo</span><span class="p">(),</span> 
+                                   <span class="n">transitions</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;outcome1&#39;</span><span class="p">:</span><span class="s1">&#39;BAR&#39;</span><span class="p">,</span> 
+                                                <span class="s1">&#39;outcome2&#39;</span><span class="p">:</span><span class="s1">&#39;outcome4&#39;</span><span class="p">})</span>
+            <span class="n">smach</span><span class="o">.</span><span class="n">StateMachine</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;BAR&#39;</span><span class="p">,</span> <span class="n">Bar</span><span class="p">(),</span> 
+                                   <span class="n">transitions</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;outcome1&#39;</span><span class="p">:</span><span class="s1">&#39;FOO&#39;</span><span class="p">})</span>
+
+        <span class="n">smach</span><span class="o">.</span><span class="n">StateMachine</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;SUB&#39;</span><span class="p">,</span> <span class="n">sm_sub</span><span class="p">,</span>
+                               <span class="n">transitions</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;outcome4&#39;</span><span class="p">:</span><span class="s1">&#39;outcome5&#39;</span><span class="p">})</span>
+
+    <span class="c1"># Execute SMACH plan</span>
+    <span class="n">sis</span> <span class="o">=</span> <span class="n">smach_ros</span><span class="o">.</span><span class="n">IntrospectionServer</span><span class="p">(</span><span class="s1">&#39;server_name&#39;</span><span class="p">,</span> <span class="n">sm_top</span><span class="p">,</span> <span class="s1">&#39;/SM_ROOT&#39;</span><span class="p">)</span>
+    <span class="n">sis</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+    <span class="c1"># Execute SMACH plan</span>
+    <span class="n">outcome</span> <span class="o">=</span> <span class="n">sm_top</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+    <span class="n">rospy</span><span class="o">.</span><span class="n">spin</span><span class="p">()</span> 
+    <span class="n">sis</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+    
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span> 
+</pre></div>
+</div>
+</div>
+<div class="section" id="smach">
+<h2>2.5. <em><strong>从SMACH状态机内调用动作服务器</strong></em><a class="headerlink" href="#smach" title="Permalink to this headline">¶</a></h2>
+<ol class="simple">
+<li>首先需要添加模块</li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">smach_ros</span> <span class="kn">import</span> <span class="n">SimpleActionState</span>
+</pre></div>
+</div>
+<p>手动在状态里调用动作是可以的，但是smach有一些现成的动作状态。</p>
+<ol class="simple">
+<li>空目标信息的动作</li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sm</span> <span class="o">=</span> <span class="n">StateMachine</span><span class="p">([</span><span class="s1">&#39;succeeded&#39;</span><span class="p">,</span><span class="s1">&#39;aborted&#39;</span><span class="p">,</span><span class="s1">&#39;preempted&#39;</span><span class="p">])</span>
+<span class="k">with</span> <span class="n">sm</span><span class="p">:</span>
+    <span class="n">smach</span><span class="o">.</span><span class="n">StateMachine</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;TRIGGER_GRIPPER&#39;</span><span class="p">,</span>
+                           <span class="n">SimpleActionState</span><span class="p">(</span><span class="s1">&#39;action_server_namespace&#39;</span><span class="p">,</span>
+                                             <span class="n">GripperAction</span><span class="p">),</span>
+                           <span class="n">transitions</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;succeeded&#39;</span><span class="p">:</span><span class="s1">&#39;APPROACH_PLUG&#39;</span><span class="p">})</span>
+</pre></div>
+</div>
+<ol class="simple">
+<li>固定目标信息</li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sm</span> <span class="o">=</span> <span class="n">StateMachine</span><span class="p">([</span><span class="s1">&#39;succeeded&#39;</span><span class="p">,</span><span class="s1">&#39;aborted&#39;</span><span class="p">,</span><span class="s1">&#39;preempted&#39;</span><span class="p">])</span>
+<span class="k">with</span> <span class="n">sm</span><span class="p">:</span>
+    <span class="n">gripper_goal</span> <span class="o">=</span> <span class="n">Pr2GripperCommandGoal</span><span class="p">()</span>
+    <span class="n">gripper_goal</span><span class="o">.</span><span class="n">command</span><span class="o">.</span><span class="n">position</span> <span class="o">=</span> <span class="mf">0.07</span>
+    <span class="n">gripper_goal</span><span class="o">.</span><span class="n">command</span><span class="o">.</span><span class="n">max_effort</span> <span class="o">=</span> <span class="mi">99999</span>
+    <span class="n">StateMachine</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;TRIGGER_GRIPPER&#39;</span><span class="p">,</span>
+                      <span class="n">SimpleActionState</span><span class="p">(</span><span class="s1">&#39;action_server_namespace&#39;</span><span class="p">,</span>
+                                        <span class="n">GripperAction</span><span class="p">,</span>
+                                        <span class="n">goal</span><span class="o">=</span><span class="n">gripper_goal</span><span class="p">),</span>
+                      <span class="n">transitions</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;succeeded&#39;</span><span class="p">:</span><span class="s1">&#39;APPROACH_PLUG&#39;</span><span class="p">})</span>
+</pre></div>
+</div>
+<ol class="simple">
+<li>把状态中的用户信息用于动作目标信息</li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sm</span> <span class="o">=</span> <span class="n">StateMachine</span><span class="p">([</span><span class="s1">&#39;succeeded&#39;</span><span class="p">,</span><span class="s1">&#39;aborted&#39;</span><span class="p">,</span><span class="s1">&#39;preempted&#39;</span><span class="p">])</span>
+<span class="k">with</span> <span class="n">sm</span><span class="p">:</span>
+    <span class="n">StateMachine</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;TRIGGER_GRIPPER&#39;</span><span class="p">,</span>
+                      <span class="n">SimpleActionState</span><span class="p">(</span><span class="s1">&#39;action_server_namespace&#39;</span><span class="p">,</span>
+                                        <span class="n">GripperAction</span><span class="p">,</span>
+                                        <span class="n">goal_slots</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;max_effort&#39;</span><span class="p">,</span> 
+                                                    <span class="s1">&#39;position&#39;</span><span class="p">]),</span>
+                      <span class="n">transitions</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;succeeded&#39;</span><span class="p">:</span><span class="s1">&#39;APPROACH_PLUG&#39;</span><span class="p">},</span>
+                      <span class="n">remapping</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;max_effort&#39;</span><span class="p">:</span><span class="s1">&#39;user_data_max&#39;</span><span class="p">,</span>
+                                 <span class="s1">&#39;position&#39;</span><span class="p">:</span><span class="s1">&#39;user_data_position&#39;</span><span class="p">})</span>
+</pre></div>
+</div>
+<ol class="simple">
+<li>目标回调
+在目标回调中，只要您在构造函数中列出input_keys，就可以使用userdata。
+回调的参数之一是默认目标。如果在构造函数中指定了“ goal = ...”，该对象将被传递到回调中。</li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sm</span> <span class="o">=</span> <span class="n">StateMachine</span><span class="p">([</span><span class="s1">&#39;succeeded&#39;</span><span class="p">,</span><span class="s1">&#39;aborted&#39;</span><span class="p">,</span><span class="s1">&#39;preempted&#39;</span><span class="p">])</span>
+<span class="k">with</span> <span class="n">sm</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">gripper_goal_cb</span><span class="p">(</span><span class="n">userdata</span><span class="p">,</span> <span class="n">goal</span><span class="p">):</span>
+       <span class="n">gripper_goal</span> <span class="o">=</span> <span class="n">GripperGoal</span><span class="p">()</span>
+       <span class="n">gripper_goal</span><span class="o">.</span><span class="n">position</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="mf">2.0</span>
+       <span class="n">gripper_goal</span><span class="o">.</span><span class="n">max_effort</span> <span class="o">=</span> <span class="n">userdata</span><span class="o">.</span><span class="n">gripper_input</span>
+       <span class="k">return</span> <span class="n">gripper_goal</span>
+
+    <span class="n">StateMachine</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;TRIGGER_GRIPPER&#39;</span><span class="p">,</span>
+                      <span class="n">SimpleActionState</span><span class="p">(</span><span class="s1">&#39;action_server_namespace&#39;</span><span class="p">,</span>
+                                        <span class="n">GripperAction</span><span class="p">,</span>
+                                        <span class="n">goal_cb</span><span class="o">=</span><span class="n">gripper_goal_cb</span><span class="p">,</span>
+                                        <span class="n">input_keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;gripper_input&#39;</span><span class="p">])</span>
+                      <span class="n">transitions</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;succeeded&#39;</span><span class="p">:</span><span class="s1">&#39;APPROACH_PLUG&#39;</span><span class="p">},</span>
+                      <span class="n">remapping</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;gripper_input&#39;</span><span class="p">:</span><span class="s1">&#39;userdata_input&#39;</span><span class="p">})</span>
+</pre></div>
+</div>
+<ol class="simple">
+<li>可以将操作结果直接写到您所在州的用户数据中</li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sm</span> <span class="o">=</span> <span class="n">StateMachine</span><span class="p">([</span><span class="s1">&#39;succeeded&#39;</span><span class="p">,</span><span class="s1">&#39;aborted&#39;</span><span class="p">,</span><span class="s1">&#39;preempted&#39;</span><span class="p">])</span>
+<span class="k">with</span> <span class="n">sm</span><span class="p">:</span>
+    <span class="n">StateMachine</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;TRIGGER_GRIPPER&#39;</span><span class="p">,</span>
+                      <span class="n">SimpleActionState</span><span class="p">(</span><span class="s1">&#39;action_server_namespace&#39;</span><span class="p">,</span>
+                                        <span class="n">GripperAction</span><span class="p">,</span>
+                                        <span class="n">result_slots</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;max_effort&#39;</span><span class="p">,</span> 
+                                                      <span class="s1">&#39;position&#39;</span><span class="p">]),</span>
+                      <span class="n">transitions</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;succeeded&#39;</span><span class="p">:</span><span class="s1">&#39;APPROACH_PLUG&#39;</span><span class="p">},</span>
+                      <span class="n">remapping</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;max_effort&#39;</span><span class="p">:</span><span class="s1">&#39;user_data_max&#39;</span><span class="p">,</span>
+                                 <span class="s1">&#39;position&#39;</span><span class="p">:</span><span class="s1">&#39;user_data_position&#39;</span><span class="p">})</span>
+</pre></div>
+</div>
+<ol class="simple">
+<li>结果回调与目标回调非常相似。
+它允许您从操作结果字段中读取任何数据，甚至返回与默认的“成功”，“抢占”，“中止”不同的结果。</li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sm</span> <span class="o">=</span> <span class="n">StateMachine</span><span class="p">([</span><span class="s1">&#39;succeeded&#39;</span><span class="p">,</span><span class="s1">&#39;aborted&#39;</span><span class="p">,</span><span class="s1">&#39;preempted&#39;</span><span class="p">])</span>
+<span class="k">with</span> <span class="n">sm</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">gripper_result_cb</span><span class="p">(</span><span class="n">userdata</span><span class="p">,</span> <span class="n">status</span><span class="p">,</span> <span class="n">result</span><span class="p">):</span>
+       <span class="k">if</span> <span class="n">status</span> <span class="o">==</span> <span class="n">GoalStatus</span><span class="o">.</span><span class="n">SUCCEEDED</span><span class="p">:</span>
+          <span class="n">userdata</span><span class="o">.</span><span class="n">gripper_output</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">num_iterations</span>
+          <span class="k">return</span> <span class="s1">&#39;my_outcome&#39;</span>
+
+    <span class="n">StateMachine</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;TRIGGER_GRIPPER&#39;</span><span class="p">,</span>
+                      <span class="n">SimpleActionState</span><span class="p">(</span><span class="s1">&#39;action_server_namespace&#39;</span><span class="p">,</span>
+                                        <span class="n">GripperAction</span><span class="p">,</span>
+                                        <span class="n">result_cb</span><span class="o">=</span><span class="n">gripper_result_cb</span><span class="p">,</span>
+                                        <span class="n">output_keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;gripper_output&#39;</span><span class="p">])</span>
+                      <span class="n">transitions</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;succeeded&#39;</span><span class="p">:</span><span class="s1">&#39;APPROACH_PLUG&#39;</span><span class="p">},</span>
+                      <span class="n">remapping</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;gripper_output&#39;</span><span class="p">:</span><span class="s1">&#39;userdata_output&#39;</span><span class="p">})</span>
+</pre></div>
+</div>
+<ol class="simple">
+<li>在结果回调中，您将获得操作的状态，该状态将告诉您操作是成功，中止还是被抢占。
+另外，您还可以访问用户数据以及操作结果。（可选）您可以从结果回调中返回不同的结果。
+如果您不返回任何内容，则状态将以相应的操作结果返回。</li>
+<li>实例</li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/usr/bin/env python</span>
+
+<span class="kn">import</span> <span class="nn">roslib</span><span class="p">;</span> <span class="n">roslib</span><span class="o">.</span><span class="n">load_manifest</span><span class="p">(</span><span class="s1">&#39;smach_tutorials&#39;</span><span class="p">)</span>
+<span class="kn">import</span> <span class="nn">rospy</span>
+<span class="kn">import</span> <span class="nn">smach</span>
+<span class="kn">import</span> <span class="nn">smach_ros</span>
+
+<span class="kn">from</span> <span class="nn">smach_tutorials.msg</span> <span class="kn">import</span> <span class="n">TestAction</span><span class="p">,</span> <span class="n">TestGoal</span>
+<span class="kn">from</span> <span class="nn">actionlib</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">actionlib_msgs.msg</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="c1"># Create a trivial action server</span>
+<span class="k">class</span> <span class="nc">TestServer</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sas</span> <span class="o">=</span> <span class="n">SimpleActionServer</span><span class="p">(</span><span class="n">name</span><span class="p">,</span>
+                <span class="n">TestAction</span><span class="p">,</span>
+                <span class="n">execute_cb</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">execute_cb</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">execute_cb</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">msg</span><span class="o">.</span><span class="n">goal</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_sas</span><span class="o">.</span><span class="n">set_succeeded</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">msg</span><span class="o">.</span><span class="n">goal</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_sas</span><span class="o">.</span><span class="n">set_aborted</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">msg</span><span class="o">.</span><span class="n">goal</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_sas</span><span class="o">.</span><span class="n">set_preempted</span><span class="p">()</span>
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="n">rospy</span><span class="o">.</span><span class="n">init_node</span><span class="p">(</span><span class="s1">&#39;smach_example_actionlib&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Start an action server</span>
+    <span class="n">server</span> <span class="o">=</span> <span class="n">TestServer</span><span class="p">(</span><span class="s1">&#39;test_action&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Create a SMACH state machine</span>
+    <span class="n">sm0</span> <span class="o">=</span> <span class="n">smach</span><span class="o">.</span><span class="n">StateMachine</span><span class="p">(</span><span class="n">outcomes</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;succeeded&#39;</span><span class="p">,</span><span class="s1">&#39;aborted&#39;</span><span class="p">,</span><span class="s1">&#39;preempted&#39;</span><span class="p">])</span>
+
+    <span class="c1"># Open the container</span>
+    <span class="k">with</span> <span class="n">sm0</span><span class="p">:</span>
+        <span class="c1"># Add states to the container</span>
+
+        <span class="c1"># Add a simple action state. This will use an empty, default goal</span>
+        <span class="c1"># As seen in TestServer above, an empty goal will always return with</span>
+        <span class="c1"># GoalStatus.SUCCEEDED, causing this simple action state to return</span>
+        <span class="c1"># the outcome &#39;succeeded&#39;</span>
+        <span class="n">smach</span><span class="o">.</span><span class="n">StateMachine</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;GOAL_DEFAULT&#39;</span><span class="p">,</span>
+                               <span class="n">smach_ros</span><span class="o">.</span><span class="n">SimpleActionState</span><span class="p">(</span><span class="s1">&#39;test_action&#39;</span><span class="p">,</span> <span class="n">TestAction</span><span class="p">),</span>
+                               <span class="p">{</span><span class="s1">&#39;succeeded&#39;</span><span class="p">:</span><span class="s1">&#39;GOAL_STATIC&#39;</span><span class="p">})</span>
+
+        <span class="c1"># Add another simple action state. This will give a goal</span>
+        <span class="c1"># that should abort the action state when it is received, so we</span>
+        <span class="c1"># map &#39;aborted&#39; for this state onto &#39;succeeded&#39; for the state machine.</span>
+        <span class="n">smach</span><span class="o">.</span><span class="n">StateMachine</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;GOAL_STATIC&#39;</span><span class="p">,</span>
+                               <span class="n">smach_ros</span><span class="o">.</span><span class="n">SimpleActionState</span><span class="p">(</span><span class="s1">&#39;test_action&#39;</span><span class="p">,</span> <span class="n">TestAction</span><span class="p">,</span>
+                                                       <span class="n">goal</span> <span class="o">=</span> <span class="n">TestGoal</span><span class="p">(</span><span class="n">goal</span><span class="o">=</span><span class="mi">1</span><span class="p">)),</span>
+                               <span class="p">{</span><span class="s1">&#39;aborted&#39;</span><span class="p">:</span><span class="s1">&#39;GOAL_CB&#39;</span><span class="p">})</span>
+
+        <span class="c1"># Add another simple action state. This will give a goal</span>
+        <span class="c1"># that should abort the action state when it is received, so we</span>
+        <span class="c1"># map &#39;aborted&#39; for this state onto &#39;succeeded&#39; for the state machine.</span>
+        <span class="k">def</span> <span class="nf">goal_callback</span><span class="p">(</span><span class="n">userdata</span><span class="p">,</span> <span class="n">default_goal</span><span class="p">):</span>
+            <span class="n">goal</span> <span class="o">=</span> <span class="n">TestGoal</span><span class="p">()</span>
+            <span class="n">goal</span><span class="o">.</span><span class="n">goal</span> <span class="o">=</span> <span class="mi">2</span>
+            <span class="k">return</span> <span class="n">goal</span>
+
+        <span class="n">smach</span><span class="o">.</span><span class="n">StateMachine</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;GOAL_CB&#39;</span><span class="p">,</span>
+                               <span class="n">smach_ros</span><span class="o">.</span><span class="n">SimpleActionState</span><span class="p">(</span><span class="s1">&#39;test_action&#39;</span><span class="p">,</span> <span class="n">TestAction</span><span class="p">,</span>
+                                                       <span class="n">goal_cb</span> <span class="o">=</span> <span class="n">goal_callback</span><span class="p">),</span>
+                               <span class="p">{</span><span class="s1">&#39;aborted&#39;</span><span class="p">:</span><span class="s1">&#39;succeeded&#39;</span><span class="p">})</span>
+
+        <span class="c1"># For more examples on how to set goals and process results, see </span>
+        <span class="c1"># executive_smach/smach_ros/tests/smach_actionlib.py</span>
+
+    <span class="c1"># Execute SMACH plan</span>
+    <span class="n">sis</span> <span class="o">=</span> <span class="n">smach_ros</span><span class="o">.</span><span class="n">IntrospectionServer</span><span class="p">(</span><span class="s1">&#39;server_name&#39;</span><span class="p">,</span> <span class="n">sm0</span><span class="p">,</span> <span class="s1">&#39;/SM_ROOT&#39;</span><span class="p">)</span>
+    <span class="n">sis</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+    <span class="c1"># Execute SMACH plan</span>
+    <span class="n">outcome</span> <span class="o">=</span> <span class="n">sm0</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+    <span class="n">rospy</span><span class="o">.</span><span class="n">spin</span><span class="p">()</span> 
+    <span class="n">sis</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+    <span class="n">rospy</span><span class="o">.</span><span class="n">signal_shutdown</span><span class="p">(</span><span class="s1">&#39;All done.&#39;</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><img alt="smatch_simple" src="_images/actionstate.png" /></p>
 </div>
 </div>
 

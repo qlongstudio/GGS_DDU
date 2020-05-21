@@ -25,7 +25,7 @@ rosrun smach_viewer smach_viewer.py
     sis.start()
     # Execute SMACH plan
     outcome = sm.execute()
-    rospy.spin() #让程序在这里卡住循环，才能用viewer观察。
+    rospy.spin() 
     sis.stop()
 ```
     
@@ -163,7 +163,7 @@ if __name__ == '__main__':
 #### 连接用户数据
 1. 在初始化状态机容器的时候，除了设置输入输出连接，还要通过状态机数据建立映射。
 ```
-sm_top = smach.StateMachine(outcomes=['outcome4','outcome5'],
+  sm_top = smach.StateMachine(outcomes=['outcome4','outcome5'],
                           input_keys=['sm_input'],
                           output_keys=['sm_output'])
   with sm_top:
@@ -260,3 +260,297 @@ if __name__ == '__main__':
     main()
 ```
 
+### ***创建分层状态机***
+
+1.首先我们有很多状态
+```
+  # State Foo
+  class Foo(smach.State):
+     def __init__(self, outcomes=['outcome1', 'outcome2'])
+     
+     def execute(self, userdata):
+        return 'outcome1'
+
+  # State Bar
+  class Bar(smach.State):
+     def __init__(self, outcomes=['outcome1'])
+     
+     def execute(self, userdata):
+        return 'outcome4'
+
+  # State Bas
+  class Bas(smach.State):
+     def __init__(self, outcomes=['outcome3'])
+     
+     def execute(self, userdata):
+        return 'outcome3'
+```
+
+2. 创建一个顶层状态机，添加状态，也可以添加另一个状态机作为底层状态机。
+![smatch_simple](images/sm_expanded.png)
+
+3. 举例
+```
+#!/usr/bin/env python
+
+import roslib; roslib.load_manifest('smach_tutorials')
+import rospy
+import smach
+import smach_ros
+
+# define state Foo
+class Foo(smach.State):
+    def __init__(self):
+        smach.State.__init__(self, outcomes=['outcome1','outcome2'])
+        self.counter = 0
+
+    def execute(self, userdata):
+        rospy.loginfo('Executing state FOO')
+        if self.counter < 3:
+            self.counter += 1
+            return 'outcome1'
+        else:
+            return 'outcome2'
+
+# define state Bar
+class Bar(smach.State):
+    def __init__(self):
+        smach.State.__init__(self, outcomes=['outcome1'])
+
+    def execute(self, userdata):
+        rospy.loginfo('Executing state BAR')
+        return 'outcome1'
+       
+# define state Bas
+class Bas(smach.State):
+    def __init__(self):
+        smach.State.__init__(self, outcomes=['outcome3'])
+
+    def execute(self, userdata):
+        rospy.loginfo('Executing state BAS')
+        return 'outcome3'
+def main():
+    rospy.init_node('smach_example_state_machine')
+
+    # Create the top level SMACH state machine
+    sm_top = smach.StateMachine(outcomes=['outcome5'])
+    
+    # Open the container
+    with sm_top:
+
+        smach.StateMachine.add('BAS', Bas(),
+                               transitions={'outcome3':'SUB'})
+
+        # Create the sub SMACH state machine
+        sm_sub = smach.StateMachine(outcomes=['outcome4'])
+
+        # Open the container
+        with sm_sub:
+
+            # Add states to the container
+            smach.StateMachine.add('FOO', Foo(), 
+                                   transitions={'outcome1':'BAR', 
+                                                'outcome2':'outcome4'})
+            smach.StateMachine.add('BAR', Bar(), 
+                                   transitions={'outcome1':'FOO'})
+
+        smach.StateMachine.add('SUB', sm_sub,
+                               transitions={'outcome4':'outcome5'})
+
+    # Execute SMACH plan
+    sis = smach_ros.IntrospectionServer('server_name', sm_top, '/SM_ROOT')
+    sis.start()
+    # Execute SMACH plan
+    outcome = sm_top.execute()
+    rospy.spin() 
+    sis.stop()
+    
+if __name__ == '__main__':
+    main() 
+```
+
+### ***从SMACH状态机内调用动作服务器***
+1. 首先需要添加模块
+```
+from smach_ros import SimpleActionState
+```
+手动在状态里调用动作是可以的，但是smach有一些现成的动作状态。
+
+2. 空目标信息的动作
+```
+sm = StateMachine(['succeeded','aborted','preempted'])
+with sm:
+    smach.StateMachine.add('TRIGGER_GRIPPER',
+                           SimpleActionState('action_server_namespace',
+                                             GripperAction),
+                           transitions={'succeeded':'APPROACH_PLUG'})
+```
+
+3. 固定目标信息
+```
+sm = StateMachine(['succeeded','aborted','preempted'])
+with sm:
+    gripper_goal = Pr2GripperCommandGoal()
+    gripper_goal.command.position = 0.07
+    gripper_goal.command.max_effort = 99999
+    StateMachine.add('TRIGGER_GRIPPER',
+                      SimpleActionState('action_server_namespace',
+                                        GripperAction,
+                                        goal=gripper_goal),
+                      transitions={'succeeded':'APPROACH_PLUG'})
+```
+
+4. 把状态中的用户信息用于动作目标信息
+```
+sm = StateMachine(['succeeded','aborted','preempted'])
+with sm:
+    StateMachine.add('TRIGGER_GRIPPER',
+                      SimpleActionState('action_server_namespace',
+                                        GripperAction,
+                                        goal_slots=['max_effort', 
+                                                    'position']),
+                      transitions={'succeeded':'APPROACH_PLUG'},
+                      remapping={'max_effort':'user_data_max',
+                                 'position':'user_data_position'})
+```
+5. 目标回调
+   在目标回调中，只要您在构造函数中列出input_keys，就可以使用userdata。
+   回调的参数之一是默认目标。如果在构造函数中指定了“ goal = ...”，该对象将被传递到回调中。
+```
+sm = StateMachine(['succeeded','aborted','preempted'])
+with sm:
+    def gripper_goal_cb(userdata, goal):
+       gripper_goal = GripperGoal()
+       gripper_goal.position.x = 2.0
+       gripper_goal.max_effort = userdata.gripper_input
+       return gripper_goal
+
+    StateMachine.add('TRIGGER_GRIPPER',
+                      SimpleActionState('action_server_namespace',
+                                        GripperAction,
+                                        goal_cb=gripper_goal_cb,
+                                        input_keys=['gripper_input'])
+                      transitions={'succeeded':'APPROACH_PLUG'},
+                      remapping={'gripper_input':'userdata_input'})
+```
+6. 可以将操作结果直接写到您所在州的用户数据中
+```
+sm = StateMachine(['succeeded','aborted','preempted'])
+with sm:
+    StateMachine.add('TRIGGER_GRIPPER',
+                      SimpleActionState('action_server_namespace',
+                                        GripperAction,
+                                        result_slots=['max_effort', 
+                                                      'position']),
+                      transitions={'succeeded':'APPROACH_PLUG'},
+                      remapping={'max_effort':'user_data_max',
+                                 'position':'user_data_position'})
+```
+7. 结果回调与目标回调非常相似。
+   它允许您从操作结果字段中读取任何数据，甚至返回与默认的“成功”，“抢占”，“中止”不同的结果。
+```
+sm = StateMachine(['succeeded','aborted','preempted'])
+with sm:
+    def gripper_result_cb(userdata, status, result):
+       if status == GoalStatus.SUCCEEDED:
+          userdata.gripper_output = result.num_iterations
+          return 'my_outcome'
+
+    StateMachine.add('TRIGGER_GRIPPER',
+                      SimpleActionState('action_server_namespace',
+                                        GripperAction,
+                                        result_cb=gripper_result_cb,
+                                        output_keys=['gripper_output'])
+                      transitions={'succeeded':'APPROACH_PLUG'},
+                      remapping={'gripper_output':'userdata_output'})
+```
+8. 在结果回调中，您将获得操作的状态，该状态将告诉您操作是成功，中止还是被抢占。
+   另外，您还可以访问用户数据以及操作结果。（可选）您可以从结果回调中返回不同的结果。
+   如果您不返回任何内容，则状态将以相应的操作结果返回。
+
+9. 实例
+```
+#!/usr/bin/env python
+
+import roslib; roslib.load_manifest('smach_tutorials')
+import rospy
+import smach
+import smach_ros
+
+from smach_tutorials.msg import TestAction, TestGoal
+from actionlib import *
+from actionlib_msgs.msg import *
+
+# Create a trivial action server
+class TestServer:
+    def __init__(self,name):
+        self._sas = SimpleActionServer(name,
+                TestAction,
+                execute_cb=self.execute_cb)
+
+    def execute_cb(self, msg):
+        if msg.goal == 0:
+            self._sas.set_succeeded()
+        elif msg.goal == 1:
+            self._sas.set_aborted()
+        elif msg.goal == 2:
+            self._sas.set_preempted()
+
+def main():
+    rospy.init_node('smach_example_actionlib')
+
+    # Start an action server
+    server = TestServer('test_action')
+
+    # Create a SMACH state machine
+    sm0 = smach.StateMachine(outcomes=['succeeded','aborted','preempted'])
+
+    # Open the container
+    with sm0:
+        # Add states to the container
+
+        # Add a simple action state. This will use an empty, default goal
+        # As seen in TestServer above, an empty goal will always return with
+        # GoalStatus.SUCCEEDED, causing this simple action state to return
+        # the outcome 'succeeded'
+        smach.StateMachine.add('GOAL_DEFAULT',
+                               smach_ros.SimpleActionState('test_action', TestAction),
+                               {'succeeded':'GOAL_STATIC'})
+
+        # Add another simple action state. This will give a goal
+        # that should abort the action state when it is received, so we
+        # map 'aborted' for this state onto 'succeeded' for the state machine.
+        smach.StateMachine.add('GOAL_STATIC',
+                               smach_ros.SimpleActionState('test_action', TestAction,
+                                                       goal = TestGoal(goal=1)),
+                               {'aborted':'GOAL_CB'})
+
+        # Add another simple action state. This will give a goal
+        # that should abort the action state when it is received, so we
+        # map 'aborted' for this state onto 'succeeded' for the state machine.
+        def goal_callback(userdata, default_goal):
+            goal = TestGoal()
+            goal.goal = 2
+            return goal
+
+        smach.StateMachine.add('GOAL_CB',
+                               smach_ros.SimpleActionState('test_action', TestAction,
+                                                       goal_cb = goal_callback),
+                               {'aborted':'succeeded'})
+
+        # For more examples on how to set goals and process results, see 
+        # executive_smach/smach_ros/tests/smach_actionlib.py
+
+    # Execute SMACH plan
+    sis = smach_ros.IntrospectionServer('server_name', sm0, '/SM_ROOT')
+    sis.start()
+    # Execute SMACH plan
+    outcome = sm0.execute()
+    rospy.spin() 
+    sis.stop()
+    rospy.signal_shutdown('All done.')
+
+if __name__ == '__main__':
+    main()
+```
+![smatch_simple](images/actionstate.png)
